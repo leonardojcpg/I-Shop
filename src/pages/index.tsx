@@ -18,7 +18,6 @@ export default function Home() {
   })
 
   return (
-
     
     <HomeContainer ref={sliderRef}>
       <Product className="keen-slider__slide">
@@ -44,8 +43,7 @@ export default function Home() {
           <span>R$ 79,90</span>
         </footer>
       </Product>
-      
-
+    
     </HomeContainer>
   )
 }
