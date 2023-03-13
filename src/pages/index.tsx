@@ -3,14 +3,11 @@ import Image from "next/image"
 
 import {stripe} from '../lib/stripe'
 
-import camiseta1 from '../assets/camisetas/1.png'
-import camiseta3 from '../assets/camisetas/3.png'
-
 import {useKeenSlider} from 'keen-slider/react'
-import { GetServerSideProps } from "next"
 
 import 'keen-slider/keen-slider.min.css'
-import { useState } from "react"
+import Stripe from "stripe"
+import { GetStaticProps } from "next"
 
 interface HomeProps {
   products: {
@@ -23,7 +20,6 @@ interface HomeProps {
 
 export default function Home({products}: HomeProps) {
 
-  const [list, setList] = useState([])
 
   const [sliderRef] = useKeenSlider({
     slides: {
@@ -53,21 +49,27 @@ export default function Home({products}: HomeProps) {
 // como o usuario nao tem acesso ao getServerSideProps, nao tem problema
 // de conter informações sensiveis
 
-export const getServerSideProps: GetServerSideProps = async() => {
+export const getStaticProps: GetStaticProps = async() => {
   const response = await stripe.products.list({
     expand: ['data.default_price']
   })
   const products = response.data.map(product => {
+    const price = product.default_price as Stripe.Price
     return {
       id: product.id,
       name: product.name,
       imageUrl: product.images[0],
-      price: product.default_price,
+      // ajustando a configuração de exibição de valores
+      price: new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(price.unit_amount / 100),
     }
   })
   return {
     props: {
       products,
-    }
+    },
+    revalidate: 60 * 60 * 2,
   }
 }
